@@ -14,19 +14,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Create output directory
+        run: mkdir -p ${{ github.workspace }}/output
+
       - name: Run Invicti Source Scan
-        run: >
-          docker run --rm
-          -e INVICTI_URL=${{ secrets.INVICTI_URL }}
-          -e INVICTI_USER=${{ secrets.INVICTI_USER }}
-          -e INVICTI_TOKEN=${{ secrets.INVICTI_TOKEN }}
-          -v ${{ github.workspace }}:/code:ro
-          -v ${{ github.workspace }}/output:/output
-          registry.invicti.com/invicti-platform/invicti-source-scan:latest
-          /code
+        env:
+          INVICTI_URL: ${{ secrets.INVICTI_URL }}
+          INVICTI_USER: ${{ secrets.INVICTI_USER }}
+          INVICTI_TOKEN: ${{ secrets.INVICTI_TOKEN }}
+        run: |
+          docker run --rm \
+            -e INVICTI_URL="${INVICTI_URL}" \
+            -e INVICTI_USER="${INVICTI_USER}" \
+            -e INVICTI_TOKEN="${INVICTI_TOKEN}" \
+            -v "${{ github.workspace }}:/code:ro" \
+            -v "${{ github.workspace }}/output:/output" \
+            registry.invicti.com/invicti-platform/invicti-source-scan:latest \
+            /code
 
       - name: Upload SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: output/results.sarif
+          sarif_file: ${{ github.workspace }}/output/results.sarif
