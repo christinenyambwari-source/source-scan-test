@@ -14,6 +14,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Log in to Invicti registry
+        run: echo "${{ secrets.INVICTI_TOKEN }}" | docker login registry.invicti.com -u "${{ secrets.INVICTI_USER }}" --password-stdin
+
       - name: Create output directory
         run: mkdir -p ${{ github.workspace }}/output
 
