@@ -1,0 +1,31 @@
+name: Invicti Source Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  source-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run Invicti Source Scan
+        run: |
+          docker run --rm \
+            -e INVICTI_URL=${{ secrets.INVICTI_URL }} \
+            -e INVICTI_USER=${{ secrets.INVICTI_USER }} \
+            -e INVICTI_TOKEN=${{ secrets.INVICTI_TOKEN }} \
+            -v ${{ github.workspace }}:/code:ro \
+            registry.invicti.com/invicti-platform/invicti-source-scan:latest \
+            /code
+
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: results.sarif
